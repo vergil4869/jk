@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.jk.mapper.ExportMapper">
+	<resultMap type="cn.itcast.jk.domain.Export" id="exportRM">
+		<id column="EXPORT_ID" property="id"/>
+
+		<!-- 虚拟字段 -->
+		<result column="EPNUM" property="epnum"/>
+		<result column="EXTNUM" property="extnum"/>
+		
+		<result column="INPUT_DATE" property="inputDate"/>
+		<result column="CONTRACT_IDS" property="contractIds"/>
+		<result column="CUSTOMER_CONTRACT" property="customerContract"/>
+		<result column="LCNO" property="lcno"/>
+		<result column="CONSIGNEE" property="consignee"/>
+		<result column="MARKS" property="marks"/>
+		<result column="REMARK" property="remark"/>
+		<result column="SHIPMENT_PORT" property="shipmentPort"/>
+		<result column="DESTINATION_PORT" property="destinationPort"/>
+		<result column="TRANSPORT_MODE" property="transportMode"/>
+		<result column="PRICE_CONDITION" property="priceCondition"/>
+		<result column="STATE" property="state"/>
+		<result column="GROSS_WEIGHT" property="grossWeight"/>
+		<result column="NET_WEIGHT" property="netWeight"/>
+		<result column="MEASUREMENT" property="measurement"/>
+		<result column="CREATE_BY" property="createBy"/>
+		<result column="CREATE_DEPT" property="createDept"/>
+		<result column="CREATE_TIME" property="createTime"/>
+	</resultMap>
+	
+	<select id="find" parameterType="map" resultMap="exportRM">
+		select 
+  (
+    select count(*) from export_product_c 
+    where export_id = e.export_id
+  ) as epnum,
+  (
+    select count(*) from ext_eproduct_c
+    where EXPORT_PRODUCT_ID in
+    (select export_product_id from export_product_c
+    where export_id = e.export_id)
+  ) as extnum,
+e.INPUT_DATE,e.CONTRACT_IDS,e.CUSTOMER_CONTRACT,e.LCNO,e.CONSIGNEE,e.MARKS,e.REMARK,e.SHIPMENT_PORT,e.DESTINATION_PORT,e.TRANSPORT_MODE,e.PRICE_CONDITION,e.STATE,e.GROSS_WEIGHT,e.NET_WEIGHT,e.MEASUREMENT
+from 
+export_c e
+	</select>
+	
+	<select id="get" parameterType="string" resultMap="exportRM">
+		select * from export_c
+		where export_id = #{pid}
+	</select>
+	
+	<insert id="insert" parameterType="cn.itcast.jk.domain.Export">
+		insert into export_c
+		(EXPORT_ID, INPUT_DATE,CONTRACT_IDS,CUSTOMER_CONTRACT,LCNO,CONSIGNEE,MARKS,REMARK,SHIPMENT_PORT,
+		DESTINATION_PORT,TRANSPORT_MODE,PRICE_CONDITION,STATE,GROSS_WEIGHT,NET_WEIGHT,MEASUREMENT, 
+		CREATE_BY, CREATE_DEPT, CREATE_TIME)
+		values
+		(
+		#{id},
+		#{inputDate, jdbcType=TIMESTAMP},
+		#{contractIds, jdbcType=VARCHAR},
+		#{customerContract, jdbcType=VARCHAR},
+		#{lcno, jdbcType=VARCHAR},
+		#{consignee, jdbcType=VARCHAR},
+		#{marks, jdbcType=VARCHAR},
+		#{remark, jdbcType=VARCHAR},
+		#{shipmentPort, jdbcType=VARCHAR},
+		#{destinationPort, jdbcType=VARCHAR},
+		#{transportMode, jdbcType=VARCHAR},
+		#{priceCondition, jdbcType=VARCHAR},
+		#{state, jdbcType=INTEGER},
+		#{grossWeight, jdbcType=DOUBLE},
+		#{netWeight, jdbcType=DOUBLE},
+		#{measurement, jdbcType=DOUBLE},
+
+		#{createBy, jdbcType=VARCHAR},
+		#{createDept, jdbcType=VARCHAR},
+		#{createTime, jdbcType=TIMESTAMP}
+		)
+	</insert>
+	
+	<update id="update" parameterType="cn.itcast.jk.domain.Export">
+		update export_c
+		<set>
+			<if test="inputDate!=null">INPUT_DATE=#{inputDate},</if>
+			<if test="contractIds!=null">CONTRACT_IDS=#{contractIds},</if>
+			<if test="customerContract!=null">CUSTOMER_CONTRACT=#{customerContract},</if>
+			<if test="lcno!=null">LCNO=#{lcno},</if>
+			<if test="consignee!=null">CONSIGNEE=#{consignee},</if>
+			<if test="marks!=null">MARKS=#{marks},</if>
+			<if test="remark!=null">REMARK=#{remark},</if>
+			<if test="shipmentPort!=null">SHIPMENT_PORT=#{shipmentPort},</if>
+			<if test="destinationPort!=null">DESTINATION_PORT=#{destinationPort},</if>
+			<if test="transportMode!=null">TRANSPORT_MODE=#{transportMode},</if>
+			<if test="priceCondition!=null">PRICE_CONDITION=#{priceCondition},</if>
+			<if test="grossWeight!=null">GROSS_WEIGHT=#{grossWeight},</if>
+			<if test="netWeight!=null">NET_WEIGHT=#{netWeight},</if>
+			<if test="measurement!=null">MEASURE=#{measure},</if>
+			<!-- state就不在更新里改了 -->
+		</set>
+		where export_id = #{id}
+	</update>
+	
+	<delete id="deleteById" parameterType="string">
+		delete from export_c
+		where export_id =#{pid}
+	</delete>
+	<delete id="delete" parameterType="string">
+		delete from export_c 
+		where export_id in 
+		<foreach collection="array" item="id" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<update id="updateState" parameterType="map">
+		update export_c 
+		set state=#{state}
+		where export_id in
+		<foreach collection="ids" item="id" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</update>
+</mapper>

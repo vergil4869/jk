@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.jk.mapper.ContractMapper">
+	<resultMap type="cn.itcast.jk.domain.Contract" id="contractRM">
+		<id property="id" column="CONTRACT_ID"/>
+
+		<!-- 虚拟字段, 这两个列实际是不存在的, 在数据库表中是不存在的 -->
+		<result property="cpnum" column="CPNUM"/>
+		<result property="extnum" column="EXTNUM"/>
+
+		<result property="offeror" column="OFFEROR"/>
+		<result property="contractNo" column="CONTRACT_NO"/>
+		<result property="signingDate" column="SIGNING_DATE"/>
+		<result property="inputBy" column="INPUT_BY"/>
+		<result property="checkBy" column="CHECK_BY"/>
+		<result property="inspector" column="INSPECTOR"/>
+		<result property="totalAmount" column="TOTAL_AMOUNT"/>
+		<result property="importNum" column="IMPORT_NUM"/>
+		<result property="crequest" column="CREQUEST"/>
+		<result property="customName" column="CUSTOM_NAME"/>
+		<result property="deliveryPeriod" column="DELIVERY_PERIOD"/>
+		<result property="shipTime" column="SHIP_TIME"/>
+		<result property="tradeTerms" column="TRADE_TERMS"/>
+		<result property="remark" column="REMARK"/>
+		<result property="printStyle" column="PRINT_STYLE"/>
+		<result property="oldState" column="OLD_STATE"/>
+		<result property="state" column="STATE"/>
+		<result property="outState" column="OUT_STATE"/>
+		
+		<result property="createBy" column="CREATE_BY"/>
+		<result property="createDept" column="CREATE_DEPT"/>
+		<result property="createTime" column="CREATE_TIME"/>
+	</resultMap>
+	
+	<!-- 继承有一个好处就是如果PO修改了之后, VO就自动继承过来了 -->
+	<resultMap type="cn.itcast.jk.vo.ContractVO" id="contractVORM" extends="contractRM">
+		<!-- 合同和货物的关系(一对多) -->
+		<collection property="contractProducts" ofType="cn.itcast.jk.vo.ContractProductVO">
+			<id property="id" column="CONTRACT_PRODUCT_ID"/>
+
+			<result property="productNo" column="PRODUCT_NO"/>
+			<result property="productImage" column="PRODUCT_IMAGE"/>
+			<result property="productDesc" column="PRODUCT_DESC"/>
+			<result property="cnumber" column="CNUMBER"/>
+			<result property="outNumber" column="OUT_NUMBER"/>
+			<result property="loadingRate" column="LOADING_RATE"/>
+			<result property="boxNum" column="BOX_NUM"/>
+			<result property="packingUnit" column="PACKING_UNIT"/>
+			<result property="price" column="PRICE"/>
+			<result property="amount" column="AMOUNT"/>
+			<result property="finished" column="FINISHED"/>
+			<result property="exts" column="EXTS"/>
+			<result property="orderNo" column="ORDER_NO"/>
+			
+			<!-- 货物和生产厂家(多对一) -->
+			<!-- 对于mybatis里面的这些xml属性的名字, 没有什么好办法, 只能死计硬背, 背就完事了, 
+			真正到用的时候直接查就行了 -->
+			<association property="factory" javaType="cn.itcast.jk.domain.Factory"><!-- 直接利用PO即可, 就不用再写一个VO了, 是否双向关联是由业务来决定的, 所谓的PO, VO, JO等等, 其实都是人为分类, 它本质上都一个POJO对象, 那我们呢, 都可以通用的 -->
+				<!-- 我们需要厂家所有字段的映射吗? 不需要, 可以减少.
+				Mybatis说白了, 它是利用sql的性能, 做结果集, 它是面向结果集的, 
+				那这个结果集字段越少, 那我们这个效率就越高.
+				所以在这里我们就不全映射, 你用到谁, 就给谁 -->
+				<id property="id" column="EXT_FACTORY_ID"/>
+				<result property="fullName" column="EXT_FULL_NAME"/>
+				<result property="factoryName" column="EXT_FACTORY_NAME"/>
+				<result property="contacts" column="EXT_CONTACTS"/>
+				<result property="phone" column="EXT_PHONE"/>
+			</association>
+			
+			<!-- 货物和附件(一对多) -->
+			<collection property="extCproducts" ofType="cn.itcast.jk.vo.ExtCproductVO">
+				<id property="id" column="EXT_CPRODUCT_ID"/>
+
+				<result property="cType" column="CTYPE"/>
+				<result property="productNo" column="EXT_PRODUCT_NO"/>
+				<result property="productImage" column="EXT_PRODUCT_IMAGE"/>
+				<result property="productDesc" column="EXT_PRODUCT_DESC"/>
+				<result property="cnumber" column="EXT_CNUMBER"/>
+				<result property="packingUnit" column="EXT_PACKING_UNIT"/>
+				<result property="price" column="EXT_PRICE"/>
+				<result property="amount" column="EXT_AMOUNT"/>
+				<result property="productRequest" column="PRODUCT_REQUEST"/>
+				<result property="orderNo" column="EXT_ORDER_NO"/>
+				
+				<!-- 附件和生产厂家(多对一) -->
+				<association property="factory" javaType="cn.itcast.jk.domain.Factory">
+					<id property="id" column="FACTORY_ID"/>
+					<result property="fullName" column="FULL_NAME"/>
+					<result property="factoryName" column="FACTORY_NAME"/>
+					<result property="contacts" column="CONTACTS"/>
+					<result property="phone" column="PHONE"/>
+				</association>
+			</collection>
+		</collection>
+	</resultMap>
+	
+	<insert id="insert" parameterType="cn.itcast.jk.domain.Contract">
+		insert into CONTRACT_C
+		(
+		CONTRACT_ID,
+		OFFEROR,
+		CONTRACT_NO,
+		SIGNING_DATE,
+		INPUT_BY,
+		CHECK_BY,
+		INSPECTOR,
+		TOTAL_AMOUNT,
+		IMPORT_NUM,
+		CREQUEST,
+		CUSTOM_NAME,
+		DELIVERY_PERIOD,
+		SHIP_TIME,
+		TRADE_TERMS,
+		REMARK,
+		PRINT_STYLE,
+		OLD_STATE,
+		STATE,
+		OUT_STATE,
+		
+		CREATE_BY,
+		CREATE_DEPT,
+		CREATE_TIME
+		)
+		values
+		(
+		#{id},
+		#{offeror, jdbcType=VARCHAR},
+		#{contractNo, jdbcType=VARCHAR},
+		#{signingDate, jdbcType=TIMESTAMP},
+		#{inputBy, jdbcType=VARCHAR},
+		#{checkBy, jdbcType=VARCHAR},
+		#{inspector, jdbcType=VARCHAR},
+		#{totalAmount, jdbcType=DOUBLE},
+		#{importNum, jdbcType=INTEGER},
+		#{crequest, jdbcType=VARCHAR},
+		#{customName, jdbcType=VARCHAR},
+		#{deliveryPeriod, jdbcType=TIMESTAMP},
+		#{shipTime, jdbcType=TIMESTAMP},
+		#{tradeTerms, jdbcType=VARCHAR},
+		#{remark, jdbcType=VARCHAR},
+		#{printStyle, jdbcType=CHAR},
+		#{oldState, jdbcType=INTEGER},
+		#{state, jdbcType=INTEGER},
+		#{outState, jdbcType=INTEGER},
+		
+		#{createBy, jdbcType=VARCHAR},
+		#{createDept, jdbcType=VARCHAR},
+		#{createTime, jdbcType=TIMESTAMP}	
+		)
+	</insert>
+	
+	<!-- 删除一条 -->
+	<delete id="deleteById" parameterType="string">
+		delete from CONTRACT_C<!-- delete操作一定要记住加where -->
+		where CONTRACT_ID = #{pid}<!-- 这里也是随便写, 那我们就写pid -->
+	</delete>
+	
+	<!-- 删除多条(一维字符串数组) -->
+	<delete id="delete" parameterType="string"><!-- 我们在配置mybatis集合的时候, 要配置集合中元素的类型, parameterType的值同理 -->
+		delete from CONTRACT_C
+		where CONTRACT_ID in 
+		<foreach collection="array" item="id" open="(" close=")" separator=", ">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<!-- 修改状态 -->
+	<update id="updateState" parameterType="map">
+		update CONTRACT_C set STATE = #{state}
+		where CONTRACT_ID in 
+		<foreach collection="ids" item="id" open="(" close=")" separator=", ">
+			#{id}	
+		</foreach>
+	</update>
+	
+	<update id="update" parameterType="cn.itcast.jk.domain.Contract">
+		update CONTRACT_C
+		<set>
+			<if test="offeror != null">OFFEROR=#{offeror},</if>
+			<if test="contractNo != null">CONTRACT_NO=#{contractNo},</if>
+			<if test="signingDate != null">SIGNING_DATE=#{signingDate},</if>
+			<if test="inputBy != null">INPUT_BY=#{inputBy},</if>
+			<if test="checkBy != null">CHECK_BY=#{checkBy},</if>
+			<if test="inspector != null">INSPECTOR=#{inspector},</if>
+			<if test="totalAmount != null">TOTAL_AMOUNT=#{totalAmount},</if>
+			<if test="importNum != null">IMPORT_NUM=#{importNum},</if>
+			<if test="crequest != null">CREQUEST=#{crequest},</if>
+			<if test="customName != null">CUSTOM_NAME=#{customName},</if>
+			<if test="deliveryPeriod != null">DELIVERY_PERIOD=#{deliveryPeriod},</if>
+			<if test="shipTime != null">SHIP_TIME=#{shipTime},</if>
+			<if test="tradeTerms != null">TRADE_TERMS=#{tradeTerms},</if>
+			<if test="remark != null">REMARK=#{remark},</if>
+			<if test="printStyle != null">PRINT_STYLE=#{printStyle},</if>
+			<if test="oldState != null">OLD_STATE=#{oldState},</if>
+			<if test="state != null">STATE=#{state},</if>
+			<if test="outState != null">OUT_STATE=#{outState},</if>
+                      
+			<if test="createBy != null">CREATE_BY=#{createBy},</if>
+			<if test="createDept != null">CREATE_DEPT=#{createDept},</if>
+			<if test="createTime != null">CREATE_TIME=#{createTime},</if>
+		</set>
+				where CONTRACT_ID = #{id}
+	</update> 
+	
+	<!-- 如果支持异构数据库, 必须针对每个数据库写一个SQL语句, 因为使用了底层数据库函数nvl -->
+	<select id="find" parameterType="map" resultMap="contractRM">
+    select 
+  (select count(*) from contract_product_c
+  where contract_id = c.contract_id) as cpnum,
+  (select count(*) from ext_cproduct_c 
+  where contract_product_id in
+        (select contract_product_id from contract_product_c
+        where contract_id = c.contract_id))as extnum,
+        (
+      (        select sum(cnumber*price) from contract_product_c
+where contract_id =c.contract_id) 
++
+nvl(
+(select sum(cnumber*price) from ext_cproduct_c
+where contract_product_id in (select contract_product_id from contract_product_c where contract_id = c.contract_id)
+), 0)
+) as TOTAL_AMOUNT,
+
+c.CONTRACT_ID, c.OFFEROR, c.CONTRACT_NO, c.SIGNING_DATE, c.INPUT_BY, c.CHECK_BY, c.INSPECTOR,  c.IMPORT_NUM, c.CREQUEST, c.CUSTOM_NAME, c.DELIVERY_PERIOD, c.SHIP_TIME, c.TRADE_TERMS, c.REMARK, c.PRINT_STYLE, c.OLD_STATE, c.STATE, c.OUT_STATE
+from contract_c c
+where 1=1
+<if test="state!=null">and c.STATE=#{state}</if>
+	</select>
+	
+	<select id="get" parameterType="string" resultMap="contractRM">
+		select * from CONTRACT_C
+		where CONTRACT_ID=#{pid}
+	</select>
+	
+	<select id="view" parameterType="string" resultMap="contractVORM">
+select 
+c.CONTRACT_ID, c.OFFEROR, c.CONTRACT_NO, c.SIGNING_DATE, c.INPUT_BY, c.CHECK_BY, c.INSPECTOR, c.TOTAL_AMOUNT, c.IMPORT_NUM, c.CREQUEST, c.CUSTOM_NAME, c.DELIVERY_PERIOD, c.SHIP_TIME, c.TRADE_TERMS, c.REMARK, c.PRINT_STYLE, c.OLD_STATE, c.STATE, c.OUT_STATE, c.CREATE_BY, c.CREATE_DEPT, c.CREATE_TIME,
+
+t.CONTRACT_PRODUCT_ID, t. PRODUCT_NO, t.PRODUCT_IMAGE, t.PRODUCT_DESC, t.CNUMBER, t.OUT_NUMBER, t.LOADING_RATE, t.BOX_NUM, t.PACKING_UNIT, t.PRICE, t.AMOUNT, t.FINISHED, t.EXTS, t.ORDER_NO,  
+t.factory_id, t.full_name, t.factory_name, t.contacts, t.phone,
+
+t.EXT_CPRODUCT_ID, t.CTYPE, t.ext_PRODUCT_NO, t.ext_PRODUCT_IMAGE, t.ext_PRODUCT_DESC, t.ext_CNUMBER, t.ext_PACKING_UNIT, t.ext_PRICE, t.ext_AMOUNT, t.PRODUCT_REQUEST, t.ext_order_no,
+t.ext_factory_id, t.ext_full_name, t.ext_factory_name, t.ext_contacts, t.ext_phone
+from 
+(select CONTRACT_ID, OFFEROR, CONTRACT_NO, SIGNING_DATE, INPUT_BY, CHECK_BY, INSPECTOR, TOTAL_AMOUNT, IMPORT_NUM, CREQUEST, CUSTOM_NAME, DELIVERY_PERIOD, SHIP_TIME, TRADE_TERMS, REMARK, PRINT_STYLE, OLD_STATE, STATE, OUT_STATE, CREATE_BY, CREATE_DEPT, CREATE_TIME
+from contract_c) c
+left join
+(
+      select 
+      cp.CONTRACT_PRODUCT_ID, cp.CONTRACT_ID, cp. PRODUCT_NO, cp.PRODUCT_IMAGE, cp.PRODUCT_DESC, cp.CNUMBER, cp.OUT_NUMBER, cp.LOADING_RATE, cp.BOX_NUM, cp.PACKING_UNIT, cp.PRICE, cp.AMOUNT, cp.FINISHED, cp.EXTS, cp.ORDER_NO,  
+      cp.factory_id, cp.full_name, cp.factory_name, cp.contacts, cp.phone,
+      
+      ext.EXT_CPRODUCT_ID, ext.CTYPE, ext.PRODUCT_NO as ext_product_no, ext.PRODUCT_IMAGE as ext_product_image, ext.PRODUCT_DESC as ext_product_desc, ext.CNUMBER as ext_cnumber, ext.PACKING_UNIT as ext_packing_unit, ext.PRICE as ext_price, ext.AMOUNT as ext_amount, ext.PRODUCT_REQUEST, ext.ORDER_NO as ext_order_no,  
+      ext.factory_id as ext_factory_id, ext.full_name as ext_full_name, ext.factory_name as ext_factory_name, ext.contacts as ext_contacts, ext.phone as ext_phone
+      from 
+      (
+        select cp.CONTRACT_PRODUCT_ID, cp.CONTRACT_ID, cp. PRODUCT_NO, cp.PRODUCT_IMAGE, cp.PRODUCT_DESC, cp.CNUMBER, cp.OUT_NUMBER, cp.LOADING_RATE, cp.BOX_NUM, cp.PACKING_UNIT, cp.PRICE, cp.AMOUNT, cp.FINISHED, cp.EXTS, cp.ORDER_NO,  
+        f.factory_id, f.full_name, f.factory_name, f.contacts, f.phone
+        from 
+        (select CONTRACT_PRODUCT_ID,CONTRACT_ID, FACTORY_ID, PRODUCT_NO,PRODUCT_IMAGE,PRODUCT_DESC,CNUMBER,OUT_NUMBER,LOADING_RATE,BOX_NUM,PACKING_UNIT,PRICE,AMOUNT,FINISHED,EXTS,ORDER_NO
+        from contract_product_c) cp
+        left join
+        (select factory_id, full_name, factory_name, contacts, phone from factory_c t) f
+        on cp.factory_id = f.factory_id
+      ) cp
+      left join 
+      (
+        select
+        ext.EXT_CPRODUCT_ID, ext.contract_product_id, ext.CTYPE, ext.PRODUCT_NO, ext.PRODUCT_IMAGE, ext.PRODUCT_DESC, ext.CNUMBER, ext.PACKING_UNIT, ext.PRICE, ext.AMOUNT, ext.PRODUCT_REQUEST, ext.ORDER_NO,  
+        f.factory_id, f.full_name, f.factory_name, f.contacts, f.phone
+        from 
+        (select EXT_CPRODUCT_ID,CONTRACT_PRODUCT_ID,FACTORY_ID,CTYPE,PRODUCT_NO,PRODUCT_IMAGE,PRODUCT_DESC,CNUMBER,PACKING_UNIT,PRICE,AMOUNT,PRODUCT_REQUEST,ORDER_NO
+        from ext_cproduct_c
+        <!-- sql优化, 下面这个优化到底要不要做, 有待考证
+        where contract_product_id in (select contract_product_id from contract_product_c
+        	where contract_id = #{contractId})
+-->		
+        ) ext
+        left join
+        (select factory_id, full_name, factory_name, contacts, phone from factory_c t) f
+        on ext.factory_id = f.factory_id
+      ) ext
+      on cp.contract_product_id = ext.contract_product_id
+) t
+on c.contract_id = t.contract_id
+
+where c.contract_id = #{contractId} 
+	</select>
+
+</mapper>

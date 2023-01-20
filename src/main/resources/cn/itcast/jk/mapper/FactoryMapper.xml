@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace随便写, 我们习惯是它的路径加文件名 -->
+<mapper namespace="cn.itcast.jk.mapper.FactoryMapper">
+	<!-- resultMap映射, id属性随便命名, 我们的习惯是用它的模块名+RM -->
+	<resultMap type="cn.itcast.jk.domain.Factory" id="factoryRM">
+		<!-- 主键 -->
+		<id property="id" column="FACTORY_ID"/>
+		<!--  一般属性 -->
+		<result property="fullName" column="FULL_NAME"/>
+		<result property="factoryName" column="FACTORY_NAME"/>
+		<result property="contacts" column="CONTACTS"/>
+		<result property="phone" column="PHONE"/>
+		<result property="mobile" column="MOBILE"/>
+		<result property="fax" column="FAX"/>
+		<result property="cnote" column="CNOTE"/>
+		<result property="inspector" column="INSPECTOR"/>
+		<result property="orderNo" column="ORDER_NO"/>
+		<result property="state" column="STATE"/>
+
+		<result property="createBy" column="CREATE_BY"/>
+		<result property="createDept" column="CREATE_DEPT"/>
+		<result property="createTime" column="CREATE_TIME"/>
+	</resultMap>
+	
+	<!-- 查询, id随便命名 -->
+	<select id="find" parameterType="map" resultMap="factoryRM">
+		select * from factory_c
+		where 1=1
+		<if test="state != null"> and STATE = #{state}</if><!-- 注意and前面有个空格 -->
+	</select>
+	
+	<!-- 查询一个, 这里的resultMap的值和上面一样, 可见, mybatis中resultMap的值都是放的集合中的一个元素的类型 -->
+	<select id="get" parameterType="string" resultMap="factoryRM">
+		select * from factory_c
+		where FACTORY_ID = #{pid}<!-- 这里可以不写成id, 而写成pid, 此处不管写啥, 都没有影响 -->
+	</select>
+	
+	<!-- 新增 -->
+	<!-- oracle, jdbc驱动当这个值为null时, 必须告诉它当前字段默认值的
+	类型jdbcType=VARCHAR (myBatis定义, 而不是oracle数据库定义的),
+	nested exception is java.sql.SQLException
+	 mysql不用写 -->
+	<insert id="insert" parameterType="cn.itcast.jk.domain.Factory">
+		insert into factory_c
+		(FACTORY_ID,
+		   FULL_NAME,
+		   FACTORY_NAME,
+		   CONTACTS,
+		   PHONE,
+		   MOBILE,
+		   FAX,
+		   CNOTE,
+		   INSPECTOR,
+		   ORDER_NO,
+		   STATE, 
+		   CREATE_BY,
+		   CREATE_DEPT,
+		   CREATE_TIME
+  		)	
+		values
+		(#{id}, 
+		#{fullName, jdbcType=VARCHAR}, 
+		#{factoryName, jdbcType=VARCHAR}, 
+		#{contacts, jdbcType=VARCHAR}, 
+		#{phone, jdbcType=VARCHAR}, 
+		#{mobile, jdbcType=VARCHAR}, 
+		#{fax, jdbcType=VARCHAR}, 
+		#{cnote, jdbcType=VARCHAR}, 
+		#{inspector, jdbcType=VARCHAR}, 
+		#{orderNo, jdbcType=INTEGER}, 
+		#{state, jdbcType=VARCHAR},<!-- 还是VARCHAR, 而不是CHAR. 这里可以不用取值,
+		直接写个1, 默认启用, 可以这样搞. 但是我们还是尽量放到业务当中, 这样当你默认值
+		变化的时候, 直接改service层就行了. 所以尽量不要在这里写, 但这儿是可以写的 --> 
+		<!-- 下面这三个在update的时候不修改, 因为它们属于新增的时候的一个历史记录的存在 -->
+		#{createBy, jdbcType=VARCHAR}, 
+		#{createDept, jdbcType=VARCHAR}, 
+		#{createTime, jdbcType=TIMESTAMP})
+	</insert>
+	
+	<!-- 修改, 动态的语句 -->
+	<update id="update" parameterType="cn.itcast.jk.domain.Factory">
+		update factory_c 
+		<!-- 在写动态sql的时候, 我们总是要记着最后个拼接的sql语句不要加逗号
+		而set标签可以帮我们解决这个问题, 它就让我们每一个拼接的sql语句都可以加上逗号, 不用顾忌这个事 -->
+		<set>
+			<!-- 我认为这里不用写jdbcType和逗号 -->
+			<if test="fullName != null">FULL_NAME=#{fullName}, </if>
+			<if test="factoryName != null">FACTORY_NAME=#{factoryName}, </if>
+			<if test="contacts != null">CONTACTS=#{contacts}, </if>
+			<if test="phone != null">PHONE=#{phone}, </if>
+			<if test="mobile != null">MOBILE=#{mobile}, </if>
+			<if test="fax != null">FAX=#{fax}, </if>
+			<if test="cnote != null">CNOTE=#{cnote}, </if>
+			<if test="inspector != null">INSPECTOR=#{inspector}, </if>
+			<if test="orderNo != null">ORDER_NO=#{orderNo}, </if>
+			<if test="state != null">STATE=#{state}, </if>
+		</set>
+		<!-- update的时候一定要写where条件, 甚至你都先写where条件, 再写字段. 
+		要不然你一更新, 所有的记录都更新了!!
+		先写where条件, 你就不会犯这样的错了, 哪怕where条件错的, 我执行出错, 也不会搞坏原来的数据 -->
+		where FACTORY_ID=#{id}
+	</update>
+	
+	<!-- 删除一条 -->
+	<delete id="deleteById" parameterType="string">
+		delete from factory_c<!-- delete操作一定要记住加where -->
+		where FACTORY_ID = #{pid}<!-- 这里也是随便写, 那我们就写pid -->
+	</delete>
+	
+	<!-- 删除多条(一维字符串数组) -->
+	<delete id="delete" parameterType="string"><!-- 我们在配置mybatis集合的时候, 要配置集合中元素的类型, parameterType的值同理 -->
+		delete from factory_c
+		where FACTORY_ID in 
+		<foreach collection="array" item="id" open="(" close=")" separator=", ">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<!-- 修改状态 -->
+	<update id="updateState" parameterType="map">
+		update factory_c set STATE = #{state}
+		where FACTORY_ID in 
+		<foreach collection="ids" item="id" open="(" close=")" separator=", ">
+			#{id}	
+		</foreach>
+	</update>
+</mapper>
